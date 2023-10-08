@@ -434,7 +434,7 @@ program
       "Exclude db columns that have a default value configured - " +
         chalk.dim.italic("(Optional)")
     ),
-    false
+    true
   )
   .option(
     "-n, --nullable",
