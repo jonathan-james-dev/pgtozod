@@ -9,11 +9,21 @@ This file contains two custom Zod schemas for validating and transforming date o
 
 2. `zodDateOnly`: This schema validates that the input is a `Date` object representing a date without a time component (i.e., the hours, minutes, seconds, and milliseconds are all zero). This can be useful when you want to store dates without time information in your database, such as birth dates or event dates.
 
+3. `zodUUID`: This schema validates that the input is a string and matches the UUID format. This can be useful when you want to validate UUIDs in your application, such as user IDs or other unique identifiers.
+
 */
 
-export const zodUtcDate = (readableName: string) =>
-	z.date().transform((arg: unknown, ctx: RefinementCtx) => {
-		if (arg instanceof Date) {
+import { z } from 'zod'
+import type { ZodType } from 'zod'
+
+export const zodUtcDate = (readableName: string): ZodType<Date> =>
+	z
+		.date()
+		.refine(
+			(arg: unknown) => Object.prototype.toString.call(arg) === '[object Date]',
+			`${readableName} must be a valid date`
+		)
+		.transform((arg: Date) => {
 			// Convert the date to UTC
 			return new Date(
 				Date.UTC(
@@ -25,14 +35,9 @@ export const zodUtcDate = (readableName: string) =>
 					arg.getSeconds()
 				)
 			)
-		}
-		return ctx.addIssue({
-			code: z.ZodIssueCode.custom,
-			message: `${readableName} must a valid UTC date and time`
 		})
-	})
 
-export const zodDateOnly = (readableName: string) =>
+export const zodDateOnly = (readableName: string): ZodType<Date> =>
 	z.custom<Date>(
 		(value) => {
 			if (!(value instanceof Date)) {
@@ -44,9 +49,14 @@ export const zodDateOnly = (readableName: string) =>
 
 			return value.getTime() === dateCopy.getTime()
 		},
-		{ message: `${readableName} must a date without time component` }
+		{ message: `${readableName} must be a date without time component` }
 	)
 
-export const zodUUID = (readableName: string) => {
-	return `z.custom((val) => typeof val === 'string' && /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(val), { message: '${readableName} must be a valid UUID' })`
+export const zodUUID = (readableName: string): ZodType<string> => {
+	return z.custom(
+		(val) =>
+			typeof val === 'string' &&
+			/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(val),
+		{ message: `${readableName} must be a valid UUID` }
+	)
 }
