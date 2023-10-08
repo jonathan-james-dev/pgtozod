@@ -31,17 +31,19 @@ This package is a utility script designed to generate Zod schemas from PostgreSQ
 
 To get started with this npm package, first ensure you have Node.js and npm installed on your system. Once that's done, you can install the package in your terminal.
 
-### Prerequisites
-
 ### Installing
 
 ```
 npm install -g pgtozod
 ```
 
-### Usage <a name = "usage"></a>
+## Usage <a name = "usage"></a>
 
 You can use pgtozod by running the following command:
+
+```
+pgtozod --table --table <table_name> [--exclude-defaults] [--nullable] [--schema <schema_name>] [--output <output_path>] [--reset] [--help] [--ver]
+```
 
 Replace `<table_name>` with the name of the table you want to generate a schema for. If you want to generate schemas for all tables, use `all` as the table name.
 
