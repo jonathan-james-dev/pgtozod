@@ -46,17 +46,16 @@ function getReadableNameFromSnakeCase(snakeCaseName) {
 }
 
 /**
- * The function `getAllTables` retrieves all table names from a specified schema in a PostgreSQL
- * database.
+ * The function `getAllTables` retrieves all table names from a specified schema in a database.
  * @param schema - The `schema` parameter is a string that represents the name of the database schema
  * from which you want to retrieve all the table names.
- * @returns The function `getAllTables` returns an array of table names from the specified schema.
+ * @returns an array of table names from the specified schema.
  */
 async function getAllTables(schema) {
   const tableQuery = `
     SELECT table_name
     FROM information_schema.tables
-    WHERE table_schema = '${schema}';
+    WHERE table_schema = '${schema}' AND table_type = 'BASE TABLE';
   `;
 
   const res = await client.query(tableQuery);
