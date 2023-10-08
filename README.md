@@ -95,18 +95,20 @@ pgtozod currenty supports the following coversions. Note that `zodDateOnly` and 
 
 | PostgreSQL Data Type     | Converted To | Supported Default Values                                                                                    |
 | ------------------------ | ------------ | ----------------------------------------------------------------------------------------------------------- |
-| integer                  | z.number()   | Any numeric value                                                                                           |
-| bigint                   | z.number()   | Any numeric value                                                                                           |
-| numeric                  | z.number()   | Any numeric value                                                                                           |
-| smallint                 | z.number()   | Any numeric value                                                                                           |
-| double precision         | z.number()   | Any numeric value                                                                                           |
+| integer                  | z.number()   | Any numeric value, direct number format (e.g., default 1)                                                   |
+| bigint                   | z.number()   | Any numeric value, direct number format (e.g., default 1)                                                   |
+| numeric                  | z.number()   | Any numeric value, direct number format (e.g., default 1)                                                   |
+| smallint                 | z.number()   | Any numeric value, direct number format (e.g., default 1)                                                   |
+| double precision         | z.number()   | Any numeric value, direct number format (e.g., default 1)                                                   |
 | boolean                  | z.boolean()  | true, false                                                                                                 |
-| character varying        | z.string()   | Any string value                                                                                            |
-| text                     | z.string()   | Any string value                                                                                            |
+| character varying        | z.string()   | Any string value, minimum length of 1                                                                       |
+| text                     | z.string()   | Any string value, minimum length of 1                                                                       |
+| character                | z.string()   | Any string value, specific length (e.g., character(5))                                                      |
 | date                     | zodDateOnly  | now()::date, current_date, ('now'::text)::date, 'YYYY-MM-DD'::date                                          |
 | timestamp with time zone | zodUtcDate   | (now() at time zone 'utc'::text), now(), current_timestamp, 'YYYY-MM-DD HH:MI:SS'::timestamp with time zone |
-| enum types               | z.enum()     | Any value from the enum                                                                                     |
+| enum types               | z.enum()     | Any value from the enum, default value from the enum                                                        |
 | array types              | z.array()    | Not specified                                                                                               |
+| uuid                     | zodUUID      | Not specified                                                                                               |
 | other                    | z.unknown()  | Not specified                                                                                               |
 
 <br>
@@ -176,6 +178,39 @@ export const zodDateOnly = z.custom<Date>(
   { message: "Expected a date without time component" }
 );
 ```
+
+<br>
+
+**`zodUUID`**:
+<br>
+It checks if the input value is a string and matches the UUID format.
+
+- If the input is not a string or does not match the UUID format, it adds an issue to the context with a custom error message.
+
+- The error message includes a readable name for the UUID, which is provided as a parameter to the zodUUID function.
+  <br><br>
+
+Source:
+
+```ts
+export const zodDateOnly = z.custom<Date>(
+  (value) => {
+    if (!(value instanceof Date)) {
+      return false;
+    }
+
+    return (
+      value.getHours() === 0 &&
+      value.getMinutes() === 0 &&
+      value.getSeconds() === 0 &&
+      value.getMilliseconds() === 0
+    );
+  },
+  { message: "Expected a date without time component" }
+);
+```
+
+This custom schema type can be used to validate UUIDs in your data. The `readableName` parameter allows you to customize the error message for better readability and understanding.
 
 ## Configuration
 
