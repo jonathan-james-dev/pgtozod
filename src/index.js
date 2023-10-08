@@ -337,7 +337,11 @@ function getTypeForDataType(dataType, enums, columnName, udt_name) {
     return "zodDateOnly";
   } else {
     console.warn(
-      chalk.warn(`Unsupported data type: ${dataType} for column: ${columnName}`)
+      console.log(
+        chalk.yellow(
+          `Unsupported data type: ${dataType} for column: ${columnName}`
+        )
+      )
     );
     return "z.unknown()";
   }
