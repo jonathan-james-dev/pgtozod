@@ -212,7 +212,7 @@ async function getTableSchema(tableName, includeNullable = false) {
   let schemaEntries = [];
   let identityColumnEntry = null;
 
-  schema += `const ${tableName}Schema = z.object({\n`;
+  schema += `export const ${tableName}Schema = z.object({\n`;
 
   res.rows.forEach((column) => {
     const {
