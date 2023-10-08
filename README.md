@@ -42,7 +42,7 @@ npm install -g pgtozod
 You can use pgtozod by running the following command:
 
 ```
-pgtozod --table --table <table_name> [--exclude-defaults] [--nullable] [--schema <schema_name>] [--output <output_path>] [--reset] [--help] [--ver]
+pgtozod --table <table_name> [--exclude-defaults] [--nullable] [--schema <schema_name>] [--output <output_path>] [--reset] [--help] [--ver]
 ```
 
 Replace `<table_name>` with the name of the table you want to generate a schema for. If you want to generate schemas for all tables, use `all` as the table name.
