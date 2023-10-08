@@ -11,39 +11,42 @@ This file contains two custom Zod schemas for validating and transforming date o
 
 */
 
-import { z } from 'zod'
-import type { RefinementCtx } from 'zod'
-
-export const zodUtcDate = z.date().transform((arg: unknown, ctx: RefinementCtx) => {
-	if (arg instanceof Date) {
-		// Convert the date to UTC
-		return new Date(
-			Date.UTC(
-				arg.getFullYear(),
-				arg.getMonth(),
-				arg.getDate(),
-				arg.getHours(),
-				arg.getMinutes(),
-				arg.getSeconds()
+export const zodUtcDate = (readableName: string) =>
+	z.date().transform((arg: unknown, ctx: RefinementCtx) => {
+		if (arg instanceof Date) {
+			// Convert the date to UTC
+			return new Date(
+				Date.UTC(
+					arg.getFullYear(),
+					arg.getMonth(),
+					arg.getDate(),
+					arg.getHours(),
+					arg.getMinutes(),
+					arg.getSeconds()
+				)
 			)
-		)
-	}
-	return ctx.addIssue({
-		code: z.ZodIssueCode.custom,
-		message: 'Must be a Date object'
-	})
-})
-
-export const zodDateOnly = z.custom<Date>(
-	(value) => {
-		if (!(value instanceof Date)) {
-			return false
 		}
+		return ctx.addIssue({
+			code: z.ZodIssueCode.custom,
+			message: `${readableName} must a valid UTC date and time`
+		})
+	})
 
-		const dateCopy = new Date(value.getTime())
-		dateCopy.setHours(0, 0, 0, 0)
+export const zodDateOnly = (readableName: string) =>
+	z.custom<Date>(
+		(value) => {
+			if (!(value instanceof Date)) {
+				return false
+			}
 
-		return value.getTime() === dateCopy.getTime()
-	},
-	{ message: 'Expected a date without time component' }
-)
+			const dateCopy = new Date(value.getTime())
+			dateCopy.setHours(0, 0, 0, 0)
+
+			return value.getTime() === dateCopy.getTime()
+		},
+		{ message: `${readableName} must a date without time component` }
+	)
+
+export const zodUUID = (readableName: string) => {
+	return `z.custom((val) => typeof val === 'string' && /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(val), { message: '${readableName} must be a valid UUID' })`
+}

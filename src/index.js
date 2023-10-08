@@ -331,9 +331,11 @@ function getTypeForDataType(dataType, enums, columnName, udt_name) {
   } else if (dataType === "boolean") {
     return "z.boolean()";
   } else if (dataType === "timestamp with time zone") {
-    return "zodUtcDate";
+    return `zodUtcDate(${readableName})`;
   } else if (dataType === "date") {
-    return "zodDateOnly";
+    return `zodDateOnly(${readableName})`;
+  } else if (dataType === "uuid") {
+    return `zodUUID(${readableName})`;
   } else {
     console.warn(
       console.log(
