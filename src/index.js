@@ -339,7 +339,10 @@ function getTypeForDataType(
   udt_name,
   character_maximum_length
 ) {
-  let readableName = getReadableNameFromSnakeCase(columnName);
+  let readableName =
+    columnName === "id"
+      ? "Id"
+      : getReadableNameFromSnakeCase(columnName).trim();
 
   const characterTypeMatch = dataType.trim().match(/^character\((\d+)\)$/);
 
