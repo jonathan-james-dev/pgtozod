@@ -8,6 +8,8 @@ const os = require("os");
 const path = require("path");
 const fs = require("fs");
 
+/* The code is defining a function that returns a connection pool object for a
+PostgreSQL database. */
 module.exports = function () {
   const configDir = path.join(os.homedir(), ".pgtozod");
   const configPath = path.join(configDir, "config.json");

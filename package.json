@@ -1,7 +1,7 @@
 {
   "name": "pgtozod",
   "version": "0.0.1",
-  "description": "Generate zod schemas from postgresql tables",
+  "description": "pgtozod utility is used to convert PostgreSQL database schemas into Zod schemas.",
   "main": "index.js",
   "bin": {
     "pgtozod": "./index.js"

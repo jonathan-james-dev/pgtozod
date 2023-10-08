@@ -16,12 +16,27 @@ const utilFilePath = path.resolve(__dirname, "types.ts.txt"); // Path to util.ts
 
 let client;
 
+/**
+ * The camelCase function converts a string with underscores to camel case by capitalizing the first
+ * letter of each word after an underscore.
+ * @param str - The `str` parameter is a string that represents a sentence or phrase written in snake
+ * case, where words are separated by underscores.
+ * @returns a camelCase version of the input string.
+ */
 function camelCase(str) {
   return str.replace(/_([a-z])/g, function (g) {
     return g[1].toUpperCase();
   });
 }
 
+/**
+ * The function converts a snake_case string to a readable name by removing "Id" from the end,
+ * capitalizing the first letter of each word, and replacing underscores with spaces.
+ * @param snakeCaseName - The `snakeCaseName` parameter is a string that represents a name in snake
+ * case format. Snake case is a naming convention where words are separated by underscores, and all
+ * letters are lowercase.
+ * @returns a readable name by converting a snake case name to a human-readable format.
+ */
 function getReadableNameFromSnakeCase(snakeCaseName) {
   let nameWithoutId = snakeCaseName;
   if (snakeCaseName.toLowerCase().endsWith("id")) {
@@ -30,6 +45,13 @@ function getReadableNameFromSnakeCase(snakeCaseName) {
   return nameWithoutId.trim().split("_").map(capitalizeFirstLetter).join(" ");
 }
 
+/**
+ * The function `getAllTables` retrieves all table names from a specified schema in a PostgreSQL
+ * database.
+ * @param schema - The `schema` parameter is a string that represents the name of the database schema
+ * from which you want to retrieve all the table names.
+ * @returns The function `getAllTables` returns an array of table names from the specified schema.
+ */
 async function getAllTables(schema) {
   const tableQuery = `
     SELECT table_name
@@ -41,6 +63,12 @@ async function getAllTables(schema) {
   return res.rows.map((row) => row.table_name);
 }
 
+/**
+ * The function `getEnumTypes` retrieves all enum types and their corresponding values from a
+ * PostgreSQL database.
+ * @returns The function `getEnumTypes` returns an object containing enum types and their corresponding
+ * values.
+ */
 async function getEnumTypes() {
   const enumQuery = `
     SELECT t.typname AS enum_name, e.enumlabel AS enum_value
@@ -60,6 +88,19 @@ async function getEnumTypes() {
   return enums;
 }
 
+/**
+ * The function `parseDefaultValue` is used to parse and convert default values of different data types
+ * in JavaScript.
+ * @param value - The `value` parameter represents the default value of a column in a database table.
+ * It is a string that contains the default value in a specific format.
+ * @param dataType - The `dataType` parameter represents the data type of the column for which the
+ * default value is being parsed. It can have values such as "integer", "bigint", "numeric",
+ * "smallint", "double precision", "boolean", "character varying", "text", "date", or "timestamp
+ * @param enums - The `enums` parameter is an object that contains the names of the enum types as keys
+ * and an array of enum values as the corresponding values.
+ * @returns The function `parseDefaultValue` returns the parsed default value based on the provided
+ * value, data type, and enums. The return value depends on the data type:
+ */
 function parseDefaultValue(value, dataType, enums) {
   switch (dataType) {
     case "integer":
@@ -146,6 +187,15 @@ function parseDefaultValue(value, dataType, enums) {
   }
 }
 
+/**
+ * The `getTableSchema` function generates a schema for a given database table and writes it to a
+ * TypeScript file.
+ * @param tableName - The name of the table for which you want to generate the schema.
+ * @param [includeNullable=false] - The `includeNullable` parameter is a boolean value that determines
+ * whether nullable columns should be included in the generated schema. If `includeNullable` is set to
+ * `true`, nullable columns will be included in the schema. If `includeNullable` is set to `false`
+ * (default), nullable columns will
+ */
 async function getTableSchema(tableName, includeNullable = false) {
   console.log(chalk.gray(`Generating schema for table: ${tableName}`));
 
@@ -293,10 +343,22 @@ function getTypeForDataType(dataType, enums, columnName, udt_name) {
   }
 }
 
+/**
+ * The function capitalizes the first letter of a given string.
+ * @param string - The parameter "string" is a string value that represents the input text that you
+ * want to capitalize the first letter of.
+ * @returns the input string with the first letter capitalized.
+ */
 function capitalizeFirstLetter(string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
+/**
+ * The function validates a table name by checking for invalid characters and reserved words.
+ * @param tableName - The `tableName` parameter is a string that represents the name of a table in a
+ * database.
+ * @returns a boolean value. It returns true if the tableName is valid and false if it is not valid.
+ */
 function validateTableName(tableName) {
   // Check for invalid characters
   const invalidChars = /[^a-zA-Z0-9_-]/g;
@@ -313,6 +375,10 @@ function validateTableName(tableName) {
   return true;
 }
 
+/**
+ * The main function connects to a database, retrieves table schema information, and copies a file to
+ * an output directory.
+ */
 async function main() {
   try {
     console.log(chalk.gray("Connecting to database..."));
