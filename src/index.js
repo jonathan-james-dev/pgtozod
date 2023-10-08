@@ -353,11 +353,11 @@ function getTypeForDataType(
   } else if (dataType === "boolean") {
     return "z.boolean()";
   } else if (dataType === "timestamp with time zone") {
-    return `zodUtcDate(${readableName})`;
+    return `zodUtcDate('${readableName}')`;
   } else if (dataType === "date") {
-    return `zodDateOnly(${readableName})`;
+    return `zodDateOnly('${readableName}')`;
   } else if (dataType === "uuid") {
-    return `zodUUID(${readableName})`;
+    return `zodUUID('${readableName}')`;
   } else {
     console.warn(
       console.log(
