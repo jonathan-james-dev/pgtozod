@@ -85,6 +85,96 @@ Generate a schema for the 'users' table and output it to the './schemas' directo
 pgtozod --table users --output ./schemas
 ```
 
+## Datatype Support
+
+pgtozod currenty supports the following coversions. Note that `zodDateOnly` and `zodUtcDate` are custom types that will be included in the generated output.
+
+<br>
+
+| PostgreSQL Data Type     | Converted To | Supported Default Values                                                                                    |
+| ------------------------ | ------------ | ----------------------------------------------------------------------------------------------------------- |
+| integer                  | z.number()   | Any numeric value                                                                                           |
+| bigint                   | z.number()   | Any numeric value                                                                                           |
+| numeric                  | z.number()   | Any numeric value                                                                                           |
+| smallint                 | z.number()   | Any numeric value                                                                                           |
+| double precision         | z.number()   | Any numeric value                                                                                           |
+| boolean                  | z.boolean()  | true, false                                                                                                 |
+| character varying        | z.string()   | Any string value                                                                                            |
+| text                     | z.string()   | Any string value                                                                                            |
+| date                     | zodDateOnly  | now()::date, current_date, ('now'::text)::date, 'YYYY-MM-DD'::date                                          |
+| timestamp with time zone | zodUtcDate   | (now() at time zone 'utc'::text), now(), current_timestamp, 'YYYY-MM-DD HH:MI:SS'::timestamp with time zone |
+| enum types               | z.enum()     | Any value from the enum                                                                                     |
+| array types              | z.array()    | Not specified                                                                                               |
+| other                    | z.unknown()  | Not specified                                                                                               |
+
+<br>
+
+### Custom schema types
+
+---
+
+**`zodUtcDate`**:
+
+- It checks if the input value is a Date object.
+- If the input is a Date object, it transforms it into UTC format. This is done by creating a new Date object with the year, month, date, hours, minutes, and seconds of the input date in UTC.
+- If the input is not a Date object, it adds an issue to the context with a custom error message.
+- If no value is provided, it defaults to the current date and time.
+  <br><br>
+
+Source:
+
+```ts
+export const zodUtcDate = z
+  .custom((val) => val instanceof Date, { message: "Must be a Date object" })
+  .transform((arg: unknown, ctx: RefinementCtx) => {
+    if (arg instanceof Date) {
+      // Convert the date to UTC
+      return new Date(
+        Date.UTC(
+          arg.getFullYear(),
+          arg.getMonth(),
+          arg.getDate(),
+          arg.getHours(),
+          arg.getMinutes(),
+          arg.getSeconds()
+        )
+      );
+    }
+    return ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Must be a Date object",
+    });
+  })
+  .default(() => new Date());
+```
+
+<br>
+
+**`zodDateOnly`**:
+<br>
+This schema checks if the input value is a Date object representing a date without a time component. This means the hours, minutes, seconds, and milliseconds of the date are all zero. If the input is not a Date object or if it has a time component, it returns false.
+<br><br>
+
+Source:
+
+```ts
+export const zodDateOnly = z.custom<Date>(
+  (value) => {
+    if (!(value instanceof Date)) {
+      return false;
+    }
+
+    return (
+      value.getHours() === 0 &&
+      value.getMinutes() === 0 &&
+      value.getSeconds() === 0 &&
+      value.getMilliseconds() === 0
+    );
+  },
+  { message: "Expected a date without time component" }
+);
+```
+
 ## Configuration
 
 The first time you run pgtozod, you will be prompted to enter your PostgreSQL database connection details. These details will be saved in a configuration file in your home directory. If you want to reset these details, run `pgtozod` with only the `--reset` option.
