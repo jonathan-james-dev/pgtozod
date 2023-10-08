@@ -11,6 +11,7 @@ const os = require("os");
 const chalk = require("chalk");
 const { program } = require("commander");
 const readline = require("readline");
+const pluralize = require("pluralize");
 const createPool = require("./db.js");
 const utilFilePath = path.resolve(__dirname, "types.ts.txt"); // Path to util.ts.txt file
 
@@ -198,6 +199,7 @@ function parseDefaultValue(value, dataType, enums) {
 async function getTableSchema(tableName, includeNullable = false) {
   console.log(chalk.gray(`Generating schema for table: ${tableName}`));
 
+  const singularTableName = pluralize.singular(tableName);
   const columnQuery = `
     SELECT column_name, data_type, is_nullable, column_default, udt_name, is_identity, character_maximum_length
     FROM information_schema.columns 
@@ -212,7 +214,7 @@ async function getTableSchema(tableName, includeNullable = false) {
   let schemaEntries = [];
   let identityColumnEntry = null;
 
-  schema += `export const ${tableName}Schema = z.object({\n`;
+  schema += `export const ${singularTableName}Schema = z.object({\n`;
 
   res.rows.forEach((column) => {
     const {
@@ -304,7 +306,7 @@ async function getTableSchema(tableName, includeNullable = false) {
 
   schema += `});\n\nexport type ${capitalizeFirstLetter(
     tableName
-  )}Type = z.infer<typeof ${tableName}Schema>;\n`;
+  )}Type = z.infer<typeof ${singularTableName}Schema>;\n`;
 
   // Write the schema to a file
   const schemaDir = path.resolve(__dirname, options.output); // Use the output option
@@ -313,13 +315,13 @@ async function getTableSchema(tableName, includeNullable = false) {
   // Add the additional schema that extends the main one and makes the id optional
   schema += `\nexport const insert${capitalizeFirstLetter(
     tableName
-  )}Schema = ${tableName}Schema.extend({\n`;
+  )}Schema = ${singularTableName}Schema.extend({\n`;
   if (identityColumnEntry) {
-    schema += `  ${identityColumnEntry.key}: ${tableName}Schema.shape.${identityColumnEntry.key}.optional()\n`;
+    schema += `  ${identityColumnEntry.key}: ${singularTableName}Schema.shape.${identityColumnEntry.key}.optional()\n`;
   }
   schema += `});\n`;
 
-  fs.writeFileSync(path.join(schemaDir, `${tableName}.ts`), schema);
+  fs.writeFileSync(path.join(schemaDir, `${singularTableName}.ts`), schema);
 
   console.log(
     chalk.gray(
