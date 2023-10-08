@@ -199,7 +199,7 @@ async function getTableSchema(tableName, includeNullable = false) {
   console.log(chalk.gray(`Generating schema for table: ${tableName}`));
 
   const columnQuery = `
-    SELECT column_name, data_type, is_nullable, column_default, udt_name, is_identity
+    SELECT column_name, data_type, is_nullable, column_default, udt_name, is_identity, character_maximum_length
     FROM information_schema.columns 
     WHERE table_name = '${tableName}';
   `;
@@ -215,8 +215,14 @@ async function getTableSchema(tableName, includeNullable = false) {
   schema += `const ${tableName}Schema = z.object({\n`;
 
   res.rows.forEach((column) => {
-    const { column_name, data_type, is_nullable, column_default, udt_name } =
-      column;
+    const {
+      column_name,
+      data_type,
+      is_nullable,
+      column_default,
+      udt_name,
+      character_maximum_length,
+    } = column;
 
     if (excludeDefaults && column_default !== null) {
       return;
@@ -234,7 +240,13 @@ async function getTableSchema(tableName, includeNullable = false) {
           udt_name
         )})`;
       } else {
-        type = getTypeForDataType(data_type, enums, column_name, udt_name);
+        type = getTypeForDataType(
+          data_type,
+          enums,
+          column_name,
+          udt_name,
+          character_maximum_length
+        );
       }
 
       if (column_default !== null) {
@@ -308,8 +320,16 @@ async function getTableSchema(tableName, includeNullable = false) {
   );
 }
 
-function getTypeForDataType(dataType, enums, columnName, udt_name) {
+function getTypeForDataType(
+  dataType,
+  enums,
+  columnName,
+  udt_name,
+  character_maximum_length
+) {
   let readableName = getReadableNameFromSnakeCase(columnName);
+
+  const characterTypeMatch = dataType.trim().match(/^character\((\d+)\)$/);
 
   if (enums[udt_name]) {
     const defaultEnum = column_default
@@ -318,6 +338,8 @@ function getTypeForDataType(dataType, enums, columnName, udt_name) {
     return `z.enum([${enums[udt_name]
       .map((v) => `'${v}'`)
       .join(", ")}]).default(${defaultEnum})`;
+  } else if (dataType === "character" && character_maximum_length) {
+    return `z.string().length(${character_maximum_length}, '${readableName} must be ${character_maximum_length} characters long')`;
   } else if (dataType.startsWith("character varying") || dataType === "text") {
     return `z.string().min(1, '${readableName} is required')`;
   } else if (
