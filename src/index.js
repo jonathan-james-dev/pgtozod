@@ -309,6 +309,16 @@ async function getTableSchema(tableName, includeNullable = false) {
   // Write the schema to a file
   const schemaDir = path.resolve(__dirname, options.output); // Use the output option
   fs.mkdirSync(schemaDir, { recursive: true }); // Ensure the directory exists
+
+  // Add the additional schema that extends the main one and makes the id optional
+  schema += `\nexport const insert${capitalizeFirstLetter(
+    tableName
+  )}Schema = ${tableName}Schema.extend({\n`;
+  if (identityColumnEntry) {
+    schema += `  ${identityColumnEntry.key}: ${tableName}Schema.shape.${identityColumnEntry.key}.optional()\n`;
+  }
+  schema += `});\n`;
+
   fs.writeFileSync(path.join(schemaDir, `${tableName}.ts`), schema);
 
   console.log(
