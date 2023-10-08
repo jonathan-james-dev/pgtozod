@@ -16,6 +16,8 @@ This file contains two custom Zod schemas for validating and transforming date o
 import { z } from 'zod'
 import type { ZodType } from 'zod'
 
+// The `zodUtcDate` function is a custom Zod schema that validates and transforms a JavaScript `Date`
+// object into UTC format.
 export const zodUtcDate = (readableName: string): ZodType<Date> =>
 	z
 		.date()
@@ -37,6 +39,9 @@ export const zodUtcDate = (readableName: string): ZodType<Date> =>
 			)
 		})
 
+// The `zodDateOnly` function is a custom Zod schema that validates that the input is a `Date` object
+// representing a date without a time component. It takes a `readableName` parameter, which is used in
+// the error message if the validation fails.
 export const zodDateOnly = (readableName: string): ZodType<Date> =>
 	z.custom<Date>(
 		(value) => {
@@ -52,6 +57,9 @@ export const zodDateOnly = (readableName: string): ZodType<Date> =>
 		{ message: `${readableName} must be a date without time component` }
 	)
 
+// The `zodUUID` function is a custom Zod schema that validates that the input is a string and matches
+// the UUID format. It takes a `readableName` parameter, which is used in the error message if the
+// validation fails.
 export const zodUUID = (readableName: string): ZodType<string> => {
 	return z.custom(
 		(val) =>
