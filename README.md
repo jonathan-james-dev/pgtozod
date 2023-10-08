@@ -52,10 +52,10 @@ Replace `<table_name>` with the name of the table you want to generate a schema 
 - `-n, --nullable`: Include nullable columns. This option is optional.
 - `-s, --schema <name>`: Specify the schema name. The default value is 'public'. This option is optional.
 - `-o, --output <path>`: Specify the output path. The default value is './schemas'. This option is optional.
-- `-r, --reset`: Set new database connection details. This option is optional.
 
 ### Additional commands
 
+- `-r, --reset`: Set new database connection details. This option is optional.
 - `-h, --help`: Show command help.
 - `-v, --ver`: Get current version.
 
