@@ -14,28 +14,25 @@ This file contains two custom Zod schemas for validating and transforming date o
 import { z } from 'zod'
 import type { RefinementCtx } from 'zod'
 
-export const zodUtcDate = z
-	.custom((val) => val instanceof Date, { message: 'Must be a Date object' })
-	.transform((arg: unknown, ctx: RefinementCtx) => {
-		if (arg instanceof Date) {
-			// Convert the date to UTC
-			return new Date(
-				Date.UTC(
-					arg.getFullYear(),
-					arg.getMonth(),
-					arg.getDate(),
-					arg.getHours(),
-					arg.getMinutes(),
-					arg.getSeconds()
-				)
+export const zodUtcDate = z.date().transform((arg: unknown, ctx: RefinementCtx) => {
+	if (arg instanceof Date) {
+		// Convert the date to UTC
+		return new Date(
+			Date.UTC(
+				arg.getFullYear(),
+				arg.getMonth(),
+				arg.getDate(),
+				arg.getHours(),
+				arg.getMinutes(),
+				arg.getSeconds()
 			)
-		}
-		return ctx.addIssue({
-			code: z.ZodIssueCode.custom,
-			message: 'Must be a Date object'
-		})
+		)
+	}
+	return ctx.addIssue({
+		code: z.ZodIssueCode.custom,
+		message: 'Must be a Date object'
 	})
-	.default(() => new Date())
+})
 
 export const zodDateOnly = z.custom<Date>(
 	(value) => {
@@ -43,12 +40,10 @@ export const zodDateOnly = z.custom<Date>(
 			return false
 		}
 
-		return (
-			value.getHours() === 0 &&
-			value.getMinutes() === 0 &&
-			value.getSeconds() === 0 &&
-			value.getMilliseconds() === 0
-		)
+		const dateCopy = new Date(value.getTime())
+		dateCopy.setHours(0, 0, 0, 0)
+
+		return value.getTime() === dateCopy.getTime()
 	},
 	{ message: 'Expected a date without time component' }
 )
