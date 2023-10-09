@@ -25,7 +25,19 @@
 
 ## About <a name = "about"></a>
 
-This package is a utility script designed to generate Zod schemas from PostgreSQL tables. It connects to a PostgreSQL database, retrieves table schema information, and generates corresponding Zod schemas. Zod is a JavaScript library for data validation, and this script helps automate the process of creating these validation schemas based on existing database structures. The generated schemas are written to TypeScript files and can be used for validating data before it's inserted into the database. The script supports various data types, handles nullable and default values, and even supports enum types. It also provides options to exclude columns with default values and include nullable columns.
+An opinionated utility script designed to generate Zod schemas from PostgreSQL tables. It connects to a PostgreSQL database, retrieves table schema information, and generates corresponding Zod schemas.
+
+These generated schemas are useful for form validation, schemas are generated for both inserting and updating,
+
+I mainly create this to save time creating and configuring up zod schemas from my [Sveltekit](https://kit.svelte.dev/) which uses [SuperForms](https://superforms.rocks/) easy form management.
+
+There is plenty of room for improvement:
+
+- Support for other databases
+- More modular code
+- Handle more datatypes and default values
+
+Feel free to contribute, fork or post an issue...
 
 ## Getting Started <a name = "getting_started"></a>
 
@@ -155,7 +167,7 @@ export const zodUtcDate = z
 <br>
 
 **`zodDateOnly`**:
-<br>
+
 This schema checks if the input value is a Date object representing a date without a time component. This means the hours, minutes, seconds, and milliseconds of the date are all zero. If the input is not a Date object or if it has a time component, it returns false.
 <br><br>
 
