@@ -36,6 +36,8 @@ There is plenty of room for improvement:
 - Support for other databases
 - More modular code
 - Handle more datatypes and default values
+- Improve error handling
+- Improve argument handling
 
 Feel free to contribute, fork or post an issue...
 
