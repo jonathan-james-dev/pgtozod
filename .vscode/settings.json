@@ -1,3 +1,5 @@
 {
-    "docwriter.style": "Auto-detect"
+  "docwriter.style": "Auto-detect",
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": false
 }

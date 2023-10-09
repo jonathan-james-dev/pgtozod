@@ -27,9 +27,8 @@ let client;
 function camelCase(str) {
   return str.replace(/_([a-z])/g, function (g) {
     return g[1].toUpperCase();
-  });
+  }).replace(/_/g, '');
 }
-
 /**
  * The function converts a snake_case string to a readable name by removing "Id" from the end,
  * capitalizing the first letter of each word, and replacing underscores with spaces.
@@ -199,7 +198,8 @@ function parseDefaultValue(value, dataType, enums) {
 async function getTableSchema(tableName, includeNullable = false) {
   console.log(chalk.gray(`Generating schema for table: ${tableName}`));
 
-  const singularTableName = pluralize.singular(tableName);
+  const singularTableName = pluralize.singular(camelCase(tableName));
+
   const columnQuery = `
     SELECT column_name, data_type, is_nullable, column_default, udt_name, is_identity, character_maximum_length
     FROM information_schema.columns 
@@ -210,11 +210,12 @@ async function getTableSchema(tableName, includeNullable = false) {
   const enums = await getEnumTypes();
   const excludeDefaults = options.excludeDefaults;
 
-  let schema = `import { z } from 'zod';\nimport { zodUtcDate, zodDateOnly } from './types';\n\n`;
+  let imports = new Set();
+  let schema = ``;
   let schemaEntries = [];
   let identityColumnEntry = null;
 
-  schema += `export const ${singularTableName}Schema = z.object({\n`;
+  schema += `export const ${singularTableName}InsertSchema = z.object({\n`;
 
   res.rows.forEach((column) => {
     const {
@@ -249,6 +250,9 @@ async function getTableSchema(tableName, includeNullable = false) {
           udt_name,
           character_maximum_length
         );
+        if (type.includes("zodUtcDate")) imports.add("zodUtcDate");
+        if (type.includes("zodDateOnly")) imports.add("zodDateOnly");
+        if (type.includes("zodUUID")) imports.add("zodUUID");
       }
 
       if (column_default !== null) {
@@ -270,7 +274,7 @@ async function getTableSchema(tableName, includeNullable = false) {
 
       // Check if the column is an identity column
       if (column.is_identity && column.is_identity === "YES") {
-        identityColumnEntry = entry;
+        identityColumnEntry = { key: entry.key, value: "z.number().optional()" };
       } else {
         schemaEntries.push(entry);
       }
@@ -300,26 +304,34 @@ async function getTableSchema(tableName, includeNullable = false) {
 
   console.table(tableData);
 
+  schema = `import { z } from 'zod';\nimport { ${Array.from(imports).join(", ")} } from './types';\n\n` + schema;
+
   schema += schemaEntries
     .map((entry) => `  ${entry.key}: ${entry.value},`)
     .join("\n");
-
-  schema += `});\n\nexport type ${capitalizeFirstLetter(
-    tableName
-  )}Type = z.infer<typeof ${singularTableName}Schema>;\n`;
 
   // Write the schema to a file
   const schemaDir = path.resolve(__dirname, options.output); // Use the output option
   fs.mkdirSync(schemaDir, { recursive: true }); // Ensure the directory exists
 
+  schema += `\n});\n`;
+
   // Add the additional schema that extends the main one and makes the id optional
-  schema += `\nexport const insert${capitalizeFirstLetter(
-    tableName
-  )}Schema = ${singularTableName}Schema.extend({\n`;
+  schema += `\nexport const ${singularTableName}UpdateSchema = ${singularTableName}InsertSchema.extend({\n`;
   if (identityColumnEntry) {
-    schema += `  ${identityColumnEntry.key}: ${singularTableName}Schema.shape.${identityColumnEntry.key}.optional()\n`;
+    schema += `  ${identityColumnEntry.key}: z.number().gt(0, '${capitalizeFirstLetter(identityColumnEntry.key)} is required'),`;
   }
-  schema += `});\n`;
+  schema += `\n});\n`;
+
+  // Add type export for the insert schema
+  schema += `\n\nexport type ${capitalizeFirstLetter(
+    singularTableName
+  )}InsertType = typeof ${singularTableName}InsertSchema;\n`;
+
+  // Add type export for the update schema 
+  schema += `\n\nexport type ${capitalizeFirstLetter(
+    singularTableName
+  )}UpdateType = typeof ${singularTableName}UpdateSchema;\n`;
 
   fs.writeFileSync(path.join(schemaDir, `${singularTableName}.ts`), schema);
 
@@ -343,8 +355,6 @@ function getTypeForDataType(
     columnName === "id"
       ? "Id"
       : getReadableNameFromSnakeCase(columnName).trim();
-
-  const characterTypeMatch = dataType.trim().match(/^character\((\d+)\)$/);
 
   if (enums[udt_name]) {
     const defaultEnum = column_default
